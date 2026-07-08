@@ -10,6 +10,7 @@ import { FEELING_META, INTENSITY_META } from "@/lib/intensity";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/lib/supabase/UserProvider";
 import type { CheckIn, WeeklyPlanDay } from "@/lib/types";
+import { User } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -40,19 +41,28 @@ export default function TodayPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <p className="text-sm text-text-muted">
-          {now
-            ? now.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })
-            : " "}
-        </p>
-        <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold">
-          {now ? greeting(now) : "Welcome back"}
-        </h1>
+      <header className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-text-muted">
+            {now
+              ? now.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })
+              : " "}
+          </p>
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold">
+            {now ? greeting(now) : "Welcome back"}
+          </h1>
+        </div>
+        <Link
+          href="/profile"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface-raised text-text-muted transition-colors active:scale-[0.96]"
+          aria-label="Profile"
+        >
+          <User size={18} />
+        </Link>
       </header>
 
       {loading ? (

@@ -8,8 +8,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
@@ -20,9 +21,12 @@ export default function LoginPage() {
     setStatus("sending");
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: { display_name: displayName.trim() || null },
+      },
     });
 
     if (error) {
@@ -69,15 +73,32 @@ export default function LoginPage() {
           </svg>
         </div>
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-          Skill Tracker
+          Create your account
         </h1>
         <p className="mt-2 text-sm text-text-muted">
-          Train smart. Progress at your own pace.
+          Start tracking your skill training.
         </p>
       </div>
 
       <Card className="w-full max-w-sm">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label
+              htmlFor="displayName"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
+            >
+              Name
+            </label>
+            <input
+              id="displayName"
+              type="text"
+              autoComplete="name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Your name"
+              className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+            />
+          </div>
           <div>
             <label
               htmlFor="email"
@@ -107,26 +128,30 @@ export default function LoginPage() {
               id="password"
               type="password"
               required
-              autoComplete="current-password"
+              minLength={10}
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="At least 10 characters"
               className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
             />
+            <p className="mt-2 text-xs text-text-faint">
+              Include lowercase, uppercase, a number, and a symbol.
+            </p>
           </div>
           {status === "error" && (
             <p className="text-sm text-high">{errorMessage}</p>
           )}
           <Button type="submit" disabled={status === "sending"}>
-            {status === "sending" ? "Signing in…" : "Sign in"}
+            {status === "sending" ? "Creating account…" : "Create account"}
           </Button>
         </form>
       </Card>
 
       <p className="mt-6 text-sm text-text-muted">
-        New here?{" "}
-        <Link href="/register" className="text-accent">
-          Create an account
+        Already have an account?{" "}
+        <Link href="/login" className="text-accent">
+          Sign in
         </Link>
       </p>
     </div>

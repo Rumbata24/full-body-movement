@@ -4,10 +4,37 @@ import type {
   Exercise,
   FeelingLevel,
   IntensityLevel,
+  Profile,
   SessionWithSets,
   WeeklyPlanDay,
   WorkoutPlanWithSets,
 } from "./types";
+
+export async function getProfile(
+  supabase: SupabaseClient,
+): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .maybeSingle();
+  if (error) throw error;
+  return data as Profile | null;
+}
+
+export async function updateProfile(
+  supabase: SupabaseClient,
+  userId: string,
+  payload: { display_name: string | null; units: "metric" | "imperial" },
+): Promise<Profile> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(payload)
+    .eq("id", userId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as Profile;
+}
 
 export async function getWeeklyPlan(
   supabase: SupabaseClient,
