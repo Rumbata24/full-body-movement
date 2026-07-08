@@ -11,30 +11,37 @@ const PUBLIC_PATHS = [
 
 const isDev = process.env.NODE_ENV === "development";
 
-function buildCsp(nonce: string) {
-  return [
-    `default-src 'self'`,
-    // 'strict-dynamic' + nonce blocks injected <script> tags even if an attacker
-    // finds an HTML-injection point; 'unsafe-eval' is only needed for React's
-    // dev-mode error reconstruction and Turbopack's HMR client, never in production.
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
-    // React inline `style={{...}}` props (ScoreRing glows, intensity colors) render as
-    // inline style="" attributes, which CSP nonces cannot cover (only <style> tags can) —
-    // 'unsafe-inline' here is a deliberate, scoped tradeoff, not an oversight.
-    `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: blob:`,
-    `font-src 'self' data:`,
-    `connect-src 'self' https://*.supabase.co wss://*.supabase.co${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
-    `object-src 'none'`,
-    `base-uri 'self'`,
-    `form-action 'self'`,
-    `frame-ancestors 'none'`,
-    `upgrade-insecure-requests`,
-  ].join("; ");
-}
+// Deliberately NOT using a nonce-based CSP here: nearly every route in this
+// app is statically pre-rendered at build time (see `next build` output —
+// only dynamic-segment routes like /history/[id] are server-rendered per
+// request). A per-request nonce can only be embedded into HTML that's
+// rendered per-request, so pairing it with static pages means the CSP
+// header demands a nonce the static <script> tags can never have —
+// silently blocking every script in production while working fine in
+// `next dev` (which renders everything per-request). Confirmed live: this
+// broke all interactivity (forms, buttons) on the Vercel deployment.
+// 'unsafe-inline' on script-src is the tradeoff Next.js's own docs
+// recommend for apps that want static generation; this app has no
+// dangerouslySetInnerHTML or eval, so the practical XSS surface stays low.
+const CSP = [
+  `default-src 'self'`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  // React inline `style={{...}}` props (ScoreRing glows, intensity colors) render as
+  // inline style="" attributes, which CSP nonces cannot cover (only <style> tags can) —
+  // 'unsafe-inline' here is a deliberate, scoped tradeoff, not an oversight.
+  `style-src 'self' 'unsafe-inline'`,
+  `img-src 'self' data: blob:`,
+  `font-src 'self' data:`,
+  `connect-src 'self' https://*.supabase.co wss://*.supabase.co${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
+  `object-src 'none'`,
+  `base-uri 'self'`,
+  `form-action 'self'`,
+  `frame-ancestors 'none'`,
+  `upgrade-insecure-requests`,
+].join("; ");
 
-function applySecurityHeaders(response: NextResponse, csp: string) {
-  response.headers.set("Content-Security-Policy", csp);
+function applySecurityHeaders(response: NextResponse) {
+  response.headers.set("Content-Security-Policy", CSP);
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -50,16 +57,7 @@ function applySecurityHeaders(response: NextResponse, csp: string) {
 }
 
 export async function proxy(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  const csp = buildCsp(nonce);
-
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("Content-Security-Policy", csp);
-
-  let supabaseResponse = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -73,9 +71,7 @@ export async function proxy(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          supabaseResponse = NextResponse.next({
-            request: { headers: requestHeaders },
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );
@@ -95,7 +91,7 @@ export async function proxy(request: NextRequest) {
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return applySecurityHeaders(NextResponse.redirect(url), csp);
+    return applySecurityHeaders(NextResponse.redirect(url));
   }
 
   if (
@@ -105,10 +101,10 @@ export async function proxy(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
-    return applySecurityHeaders(NextResponse.redirect(url), csp);
+    return applySecurityHeaders(NextResponse.redirect(url));
   }
 
-  return applySecurityHeaders(supabaseResponse, csp);
+  return applySecurityHeaders(supabaseResponse);
 }
 
 export const config = {
