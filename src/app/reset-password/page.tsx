@@ -5,30 +5,29 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/supabase/errors";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function RegisterPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      setStatus("error");
+      setErrorMessage("Passwords don't match.");
+      return;
+    }
+
     setStatus("sending");
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { display_name: displayName.trim() || null },
-      },
-    });
+    const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
       setStatus("error");
@@ -43,53 +42,18 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-6">
       <AuthHeader
-        title="Create your account"
-        subtitle="Start tracking your skill training."
+        title="Choose a new password"
+        subtitle="You'll stay signed in on this device."
       />
 
       <Card className="w-full max-w-sm">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label
-              htmlFor="displayName"
-              className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
-            >
-              Name
-            </label>
-            <input
-              id="displayName"
-              type="text"
-              autoComplete="name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
-              className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
-            />
-          </div>
-          <div>
-            <label
               htmlFor="password"
               className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
             >
-              Password
+              New password
             </label>
             <input
               id="password"
@@ -106,21 +70,33 @@ export default function RegisterPage() {
               Include lowercase, uppercase, a number, and a symbol.
             </p>
           </div>
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
+            >
+              Confirm new password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              required
+              minLength={10}
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter your new password"
+              className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+            />
+          </div>
           {status === "error" && (
             <p className="text-sm text-high">{errorMessage}</p>
           )}
           <Button type="submit" disabled={status === "sending"}>
-            {status === "sending" ? "Creating account…" : "Create account"}
+            {status === "sending" ? "Saving…" : "Save new password"}
           </Button>
         </form>
       </Card>
-
-      <p className="mt-6 text-sm text-text-muted">
-        Already have an account?{" "}
-        <Link href="/login" className="text-accent">
-          Sign in
-        </Link>
-      </p>
     </div>
   );
 }

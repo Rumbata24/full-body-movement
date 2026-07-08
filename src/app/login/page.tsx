@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthHeader } from "@/components/ui/AuthHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { createClient } from "@/lib/supabase/client";
@@ -37,44 +38,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-6">
-      <div className="mb-10 flex flex-col items-center text-center">
-        <div className="relative mb-5 h-16 w-16">
-          <div
-            className="absolute inset-[-14px] rounded-full opacity-25"
-            style={{
-              background: "var(--color-accent)",
-              filter: "blur(20px)",
-            }}
-          />
-          <svg viewBox="0 0 100 100" className="relative h-16 w-16 -rotate-90">
-            <circle
-              cx="50"
-              cy="50"
-              r="38"
-              fill="none"
-              stroke="var(--color-surface-raised)"
-              strokeWidth="9"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="38"
-              fill="none"
-              stroke="var(--color-accent)"
-              strokeWidth="9"
-              strokeLinecap="round"
-              strokeDasharray="180 240"
-              style={{ filter: "drop-shadow(0 0 8px var(--color-accent))" }}
-            />
-          </svg>
-        </div>
-        <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-text">
-          Skill Tracker
-        </h1>
-        <p className="mt-2 text-sm text-text-muted">
-          Train smart. Progress at your own pace.
-        </p>
-      </div>
+      <AuthHeader
+        title="Skill Tracker"
+        subtitle="Train smart. Progress at your own pace."
+      />
 
       <Card className="w-full max-w-sm">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -97,12 +64,17 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label
-              htmlFor="password"
-              className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
-            >
-              Password
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label
+                htmlFor="password"
+                className="block text-xs font-medium uppercase tracking-wide text-text-muted"
+              >
+                Password
+              </label>
+              <Link href="/forgot-password" className="text-xs text-accent">
+                Forgot password?
+              </Link>
+            </div>
             <input
               id="password"
               type="password"

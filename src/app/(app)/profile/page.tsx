@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { getProfile, updateProfile } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
+import { friendlyAuthError } from "@/lib/supabase/errors";
 import { useUser } from "@/lib/supabase/UserProvider";
 import type { Profile } from "@/lib/types";
 import { clsx } from "clsx";
@@ -20,6 +21,14 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordStatus, setPasswordStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -52,6 +61,35 @@ export default function ProfilePage() {
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordStatus("error");
+      setPasswordError("New passwords don't match.");
+      return;
+    }
+
+    setPasswordStatus("saving");
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+      current_password: currentPassword,
+    });
+
+    if (error) {
+      setPasswordStatus("error");
+      setPasswordError(friendlyAuthError(error));
+      return;
+    }
+
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setPasswordStatus("saved");
+    setTimeout(() => setPasswordStatus("idle"), 2000);
   }
 
   if (!profile) {
@@ -120,6 +158,83 @@ export default function ProfilePage() {
         <Button onClick={handleSave} disabled={saving}>
           {saving ? "Saving…" : saved ? "Saved" : "Save changes"}
         </Button>
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <h2 className="text-[15px] font-medium">Change password</h2>
+        <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
+          <div>
+            <label
+              htmlFor="currentPassword"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
+            >
+              Current password
+            </label>
+            <input
+              id="currentPassword"
+              type="password"
+              required
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text focus:border-accent focus:outline-none"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="newPassword"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
+            >
+              New password
+            </label>
+            <input
+              id="newPassword"
+              type="password"
+              required
+              minLength={10}
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="At least 10 characters"
+              className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+            />
+            <p className="mt-2 text-xs text-text-faint">
+              Include lowercase, uppercase, a number, and a symbol.
+            </p>
+          </div>
+          <div>
+            <label
+              htmlFor="confirmNewPassword"
+              className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-muted"
+            >
+              Confirm new password
+            </label>
+            <input
+              id="confirmNewPassword"
+              type="password"
+              required
+              minLength={10}
+              autoComplete="new-password"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+              className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text focus:border-accent focus:outline-none"
+            />
+          </div>
+          {passwordStatus === "error" && (
+            <p className="text-sm text-high">{passwordError}</p>
+          )}
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={passwordStatus === "saving"}
+          >
+            {passwordStatus === "saving"
+              ? "Saving…"
+              : passwordStatus === "saved"
+                ? "Saved"
+                : "Update password"}
+          </Button>
+        </form>
       </Card>
 
       <Button variant="secondary" onClick={handleSignOut} disabled={signingOut}>

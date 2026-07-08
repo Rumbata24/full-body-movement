@@ -1,7 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/register", "/auth", "/offline"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/auth",
+  "/offline",
+];
 
 const isDev = process.env.NODE_ENV === "development";
 
