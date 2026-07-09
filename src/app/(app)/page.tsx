@@ -1,5 +1,6 @@
 "use client";
 
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IntensityBadge } from "@/components/ui/IntensityBadge";
@@ -64,6 +65,8 @@ export default function TodayPage() {
           <User size={18} />
         </Link>
       </header>
+
+      <InstallPrompt />
 
       {loading ? (
         <Card className="h-64 animate-pulse" />
