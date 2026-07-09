@@ -1,18 +1,22 @@
 "use client";
 
+import { PlanGuideContent } from "@/components/PlanGuideContent";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { getWorkoutPlans } from "@/lib/data";
+import { EXAMPLE_PLANS } from "@/lib/examplePlans";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/lib/supabase/UserProvider";
 import type { WorkoutPlanWithSets } from "@/lib/types";
-import { Plus } from "lucide-react";
+import { clsx } from "clsx";
+import { ChevronDown, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function PlansPage() {
   const { user } = useUser();
   const [plans, setPlans] = useState<WorkoutPlanWithSets[] | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -26,6 +30,43 @@ export default function PlansPage() {
           My Plans
         </h1>
       </header>
+
+      <button
+        onClick={() => setShowGuide((v) => !v)}
+        className="flex items-center justify-between rounded-2xl border border-border bg-surface-raised/60 px-4 py-3 text-left transition-colors active:scale-[0.99]"
+      >
+        <span className="text-sm font-medium text-text-muted">
+          How to build a plan
+        </span>
+        <ChevronDown
+          size={16}
+          className={clsx(
+            "text-text-faint transition-transform",
+            showGuide && "rotate-180",
+          )}
+        />
+      </button>
+      {showGuide && <PlanGuideContent />}
+
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-medium uppercase tracking-wide text-text-faint">
+          Example plans
+        </p>
+        <div className="flex flex-col gap-3">
+          {EXAMPLE_PLANS.map((template) => (
+            <Link
+              key={template.key}
+              href={`/plans/new?template=${template.key}`}
+              className="block transition-transform active:scale-[0.98]"
+            >
+              <Card raised className="flex flex-col gap-1">
+                <p className="text-[15px] font-medium">{template.name}</p>
+                <p className="text-sm text-text-muted">{template.blurb}</p>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <Link href="/plans/new">
         <Button className="flex w-full items-center justify-center gap-1.5">

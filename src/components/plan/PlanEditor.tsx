@@ -3,6 +3,8 @@
 import { ExercisePicker } from "@/components/ExercisePicker";
 import { ExerciseBlock } from "@/components/log/ExerciseBlock";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   createCustomExercise,
   createWorkoutPlan,
@@ -23,10 +25,12 @@ export function PlanEditor({
   planId,
   initialName = "",
   initialBlocks = [],
+  templateNote,
 }: {
   planId?: string;
   initialName?: string;
   initialBlocks?: DraftBlock[];
+  templateNote?: string;
 }) {
   const { user } = useUser();
   const router = useRouter();
@@ -36,6 +40,7 @@ export function PlanEditor({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const draft = useDraftBlocks();
 
@@ -80,7 +85,7 @@ export function PlanEditor({
 
   async function handleDelete() {
     if (!planId) return;
-    if (!confirm("Delete this plan?")) return;
+    setConfirmDeleteOpen(false);
     setDeleting(true);
     await deleteWorkoutPlan(createClient(), planId);
     router.push("/plans");
@@ -93,6 +98,12 @@ export function PlanEditor({
           {planId ? "Edit plan" : "New plan"}
         </h1>
       </header>
+
+      {templateNote && (
+        <Card raised className="text-sm text-text-muted">
+          {templateNote}
+        </Card>
+      )}
 
       <div>
         <label
@@ -138,7 +149,7 @@ export function PlanEditor({
       {planId && (
         <Button
           variant="ghost"
-          onClick={handleDelete}
+          onClick={() => setConfirmDeleteOpen(true)}
           disabled={deleting}
           className="!text-high"
         >
@@ -165,6 +176,16 @@ export function PlanEditor({
           }}
           onCreateCustom={addCustomExercise}
           onClose={() => setPickerOpen(false)}
+        />
+      )}
+
+      {confirmDeleteOpen && (
+        <ConfirmDialog
+          title="Delete this plan?"
+          description="This can't be undone."
+          confirmLabel="Delete"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDeleteOpen(false)}
         />
       )}
     </div>

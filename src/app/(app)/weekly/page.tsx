@@ -1,5 +1,6 @@
 "use client";
 
+import { TrainingGuideContent } from "@/components/TrainingGuideContent";
 import { Card } from "@/components/ui/Card";
 import { IntensityBadge } from "@/components/ui/IntensityBadge";
 import { currentWeekDates, toISODate } from "@/lib/date";
@@ -9,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/lib/supabase/UserProvider";
 import type { CheckIn, IntensityLevel, WeeklyPlanDay } from "@/lib/types";
 import { clsx } from "clsx";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -17,6 +19,7 @@ export default function WeeklyPage() {
   const { user } = useUser();
   const [plan, setPlan] = useState<WeeklyPlanDay[] | null>(null);
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [showInlineGuide, setShowInlineGuide] = useState(false);
 
   const week = useMemo(() => currentWeekDates(), []);
   const todayISOStr = toISODate(new Date());
@@ -69,6 +72,23 @@ export default function WeeklyPage() {
             : "Check in today to start a streak"}
         </p>
       </header>
+
+      <button
+        onClick={() => setShowInlineGuide((v) => !v)}
+        className="flex items-center justify-between rounded-2xl border border-border bg-surface-raised/60 px-4 py-3 text-left transition-colors active:scale-[0.99]"
+      >
+        <span className="text-sm font-medium text-text-muted">
+          How to structure your week
+        </span>
+        <ChevronDown
+          size={16}
+          className={clsx(
+            "text-text-faint transition-transform",
+            showInlineGuide && "rotate-180",
+          )}
+        />
+      </button>
+      {showInlineGuide && <TrainingGuideContent />}
 
       <Card className="flex flex-col gap-1">
         <div className="grid grid-cols-[2.25rem_1fr_1fr] items-center gap-2 px-2 pb-2 text-[11px] font-medium uppercase tracking-wide text-text-faint">

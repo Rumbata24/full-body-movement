@@ -26,7 +26,7 @@ import type {
   IntensityLevel,
   WorkoutPlanWithSets,
 } from "@/lib/types";
-import { ClipboardList, Plus } from "lucide-react";
+import { BookOpen, ClipboardList, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -120,13 +120,22 @@ export default function LogPage() {
 
       <IntensitySelector value={intensity} onChange={setIntensity} />
 
-      <Link
-        href="/plans"
-        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-gradient-to-b from-surface-raised to-surface-raised/80 px-5 py-3.5 text-[15px] font-medium text-text shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] transition-all hover:border-text-faint active:scale-[0.98]"
-      >
-        <ClipboardList size={16} />
-        My Plans
-      </Link>
+      <div className="flex gap-2">
+        <Link
+          href="/plans"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-border bg-gradient-to-b from-surface-raised to-surface-raised/80 px-5 py-3.5 text-[15px] font-medium text-text shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] transition-all hover:border-text-faint active:scale-[0.98]"
+        >
+          <ClipboardList size={16} />
+          My Plans
+        </Link>
+        <Link
+          href="/guide"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-border bg-gradient-to-b from-surface-raised to-surface-raised/80 px-5 py-3.5 text-[15px] font-medium text-text shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] transition-all hover:border-text-faint active:scale-[0.98]"
+        >
+          <BookOpen size={16} />
+          Guide
+        </Link>
+      </div>
 
       {draft.blocks.length === 0 && (
         <div className="flex flex-col gap-2">

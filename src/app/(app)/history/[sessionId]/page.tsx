@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { IntensityBadge } from "@/components/ui/IntensityBadge";
 import { formatFriendly } from "@/lib/date";
 import { deleteSession, getSession } from "@/lib/data";
@@ -22,6 +23,7 @@ export default function SessionDetailPage({
   const [session, setSession] = useState<SessionWithSets | null | undefined>(
     undefined,
   );
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -29,7 +31,7 @@ export default function SessionDetailPage({
   }, [user, sessionId]);
 
   async function handleDelete() {
-    if (!confirm("Delete this session?")) return;
+    setConfirmDeleteOpen(false);
     await deleteSession(createClient(), sessionId);
     router.push("/history");
   }
@@ -88,9 +90,23 @@ export default function SessionDetailPage({
         </Card>
       )}
 
-      <Button variant="ghost" onClick={handleDelete} className="!text-high">
+      <Button
+        variant="ghost"
+        onClick={() => setConfirmDeleteOpen(true)}
+        className="!text-high"
+      >
         Delete session
       </Button>
+
+      {confirmDeleteOpen && (
+        <ConfirmDialog
+          title="Delete this session?"
+          description="This can't be undone."
+          confirmLabel="Delete"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDeleteOpen(false)}
+        />
+      )}
     </div>
   );
 }
