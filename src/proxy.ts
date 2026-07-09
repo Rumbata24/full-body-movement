@@ -7,6 +7,9 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/auth",
   "/offline",
+  // Called by the beta-signup Apps Script, authenticated by its own shared
+  // secret (see src/app/api/beta-invite/route.ts) rather than a user session.
+  "/api/beta-invite",
 ];
 
 const isDev = process.env.NODE_ENV === "development";
