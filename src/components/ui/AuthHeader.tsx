@@ -9,10 +9,11 @@ export function AuthHeader({
     <div className="mb-10 flex flex-col items-center text-center">
       <div className="relative mb-5 h-16 w-16">
         <div
-          className="absolute inset-[-14px] rounded-full opacity-25"
+          className="absolute animate-glow-pulse"
           style={{
-            background: "var(--color-accent)",
-            filter: "blur(20px)",
+            inset: "-22px",
+            background:
+              "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 40%, transparent) 0%, color-mix(in srgb, var(--color-accent) 14%, transparent) 40%, transparent 70%)",
           }}
         />
         <svg viewBox="0 0 100 100" className="relative h-16 w-16 -rotate-90">
@@ -33,7 +34,6 @@ export function AuthHeader({
             strokeWidth="9"
             strokeLinecap="round"
             strokeDasharray="180 240"
-            style={{ filter: "drop-shadow(0 0 8px var(--color-accent))" }}
           />
         </svg>
       </div>
