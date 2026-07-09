@@ -112,20 +112,21 @@ export default function LogPage() {
 
   return (
     <div className="flex flex-col gap-5 pb-24">
-      <header className="flex items-center justify-between">
+      <header>
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
           Log workout
         </h1>
-        <Link
-          href="/plans"
-          className="flex items-center gap-1.5 text-sm text-text-muted"
-        >
-          <ClipboardList size={16} />
-          My Plans
-        </Link>
       </header>
 
       <IntensitySelector value={intensity} onChange={setIntensity} />
+
+      <Link
+        href="/plans"
+        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-gradient-to-b from-surface-raised to-surface-raised/80 px-5 py-3.5 text-[15px] font-medium text-text shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] transition-all hover:border-text-faint active:scale-[0.98]"
+      >
+        <ClipboardList size={16} />
+        My Plans
+      </Link>
 
       {draft.blocks.length === 0 && (
         <div className="flex flex-col gap-2">
