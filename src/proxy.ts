@@ -7,6 +7,7 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/auth",
   "/offline",
+  "/privacy",
 ];
 
 const isDev = process.env.NODE_ENV === "development";
@@ -25,14 +26,16 @@ const isDev = process.env.NODE_ENV === "development";
 // dangerouslySetInnerHTML or eval, so the practical XSS surface stays low.
 const CSP = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
   // React inline `style={{...}}` props (ScoreRing glows, intensity colors) render as
   // inline style="" attributes, which CSP nonces cannot cover (only <style> tags can) —
   // 'unsafe-inline' here is a deliberate, scoped tradeoff, not an oversight.
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: blob:`,
   `font-src 'self' data:`,
-  `connect-src 'self' https://*.supabase.co wss://*.supabase.co${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
+  `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://challenges.cloudflare.com${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
+  // Turnstile's challenge widget renders in its own iframe from this origin.
+  `frame-src https://challenges.cloudflare.com`,
   `object-src 'none'`,
   `base-uri 'self'`,
   `form-action 'self'`,
