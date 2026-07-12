@@ -3,6 +3,7 @@
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Turnstile } from "@/components/ui/Turnstile";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/supabase/errors";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import { useState } from "react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
   );
@@ -22,11 +24,13 @@ export default function ForgotPasswordPage() {
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      captchaToken,
     });
 
     if (error) {
       setStatus("error");
       setErrorMessage(friendlyAuthError(error));
+      setCaptchaToken("");
       return;
     }
 
@@ -70,10 +74,14 @@ export default function ForgotPasswordPage() {
                 className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
               />
             </div>
+            <Turnstile onVerify={setCaptchaToken} />
             {status === "error" && (
               <p className="text-sm text-high">{errorMessage}</p>
             )}
-            <Button type="submit" disabled={status === "sending"}>
+            <Button
+              type="submit"
+              disabled={status === "sending" || !captchaToken}
+            >
               {status === "sending" ? "Sending…" : "Send reset link"}
             </Button>
           </form>

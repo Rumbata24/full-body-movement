@@ -3,6 +3,7 @@
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Turnstile } from "@/components/ui/Turnstile";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/supabase/errors";
 import Link from "next/link";
@@ -14,6 +15,7 @@ export default function RegisterPage() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -27,12 +29,14 @@ export default function RegisterPage() {
       password,
       options: {
         data: { display_name: displayName.trim() || null },
+        captchaToken,
       },
     });
 
     if (error) {
       setStatus("error");
       setErrorMessage(friendlyAuthError(error));
+      setCaptchaToken("");
       return;
     }
 
@@ -106,10 +110,14 @@ export default function RegisterPage() {
               Include lowercase, uppercase, a number, and a symbol.
             </p>
           </div>
+          <Turnstile onVerify={setCaptchaToken} />
           {status === "error" && (
             <p className="text-sm text-high">{errorMessage}</p>
           )}
-          <Button type="submit" disabled={status === "sending"}>
+          <Button
+            type="submit"
+            disabled={status === "sending" || !captchaToken}
+          >
             {status === "sending" ? "Creating account…" : "Create account"}
           </Button>
         </form>
@@ -120,6 +128,14 @@ export default function RegisterPage() {
         <Link href="/login" className="text-accent">
           Sign in
         </Link>
+      </p>
+
+      <p className="mt-4 max-w-sm text-center text-xs text-text-faint">
+        By creating an account you agree to our{" "}
+        <Link href="/privacy" className="text-text-muted underline">
+          Privacy &amp; Terms
+        </Link>
+        .
       </p>
     </div>
   );

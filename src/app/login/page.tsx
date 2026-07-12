@@ -3,6 +3,7 @@
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Turnstile } from "@/components/ui/Turnstile";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/supabase/errors";
 import Link from "next/link";
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -24,11 +26,13 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: { captchaToken },
     });
 
     if (error) {
       setStatus("error");
       setErrorMessage(friendlyAuthError(error));
+      setCaptchaToken("");
       return;
     }
 
@@ -86,10 +90,14 @@ export default function LoginPage() {
               className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-[15px] text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
             />
           </div>
+          <Turnstile onVerify={setCaptchaToken} />
           {status === "error" && (
             <p className="text-sm text-high">{errorMessage}</p>
           )}
-          <Button type="submit" disabled={status === "sending"}>
+          <Button
+            type="submit"
+            disabled={status === "sending" || !captchaToken}
+          >
             {status === "sending" ? "Signing in…" : "Sign in"}
           </Button>
         </form>
@@ -101,6 +109,10 @@ export default function LoginPage() {
           Create an account
         </Link>
       </p>
+
+      <Link href="/privacy" className="mt-4 text-xs text-text-faint">
+        Privacy &amp; Terms
+      </Link>
     </div>
   );
 }
