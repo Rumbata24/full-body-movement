@@ -296,3 +296,51 @@ export async function deleteWorkoutPlan(
   const { error } = await supabase.from("workout_plans").delete().eq("id", id);
   if (error) throw error;
 }
+
+export async function exportUserData(supabase: SupabaseClient) {
+  const [profile, weeklyPlan, checkIns, customExercises, sessions, plans] =
+    await Promise.all([
+      getProfile(supabase),
+      getWeeklyPlan(supabase),
+      supabase
+        .from("check_ins")
+        .select("*")
+        .order("date", { ascending: true })
+        .then(({ data, error }) => {
+          if (error) throw error;
+          return data as CheckIn[];
+        }),
+      supabase
+        .from("exercises")
+        .select("*")
+        .not("owner_id", "is", null)
+        .then(({ data, error }) => {
+          if (error) throw error;
+          return data as Exercise[];
+        }),
+      supabase
+        .from("sessions")
+        .select("*, set_logs(*, exercise:exercises(*))")
+        .order("date", { ascending: true })
+        .then(({ data, error }) => {
+          if (error) throw error;
+          return data as unknown as SessionWithSets[];
+        }),
+      getWorkoutPlans(supabase),
+    ]);
+
+  return {
+    exported_at: new Date().toISOString(),
+    profile,
+    weekly_plan: weeklyPlan,
+    check_ins: checkIns,
+    custom_exercises: customExercises,
+    sessions,
+    workout_plans: plans,
+  };
+}
+
+export async function deleteOwnAccount(supabase: SupabaseClient): Promise<void> {
+  const { error } = await supabase.rpc("delete_own_account");
+  if (error) throw error;
+}
